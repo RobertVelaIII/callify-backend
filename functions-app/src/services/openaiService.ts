@@ -51,27 +51,30 @@ export async function analyzeWebsite(websiteUrl: string): Promise<any> {
       messages: [
         {
           role: "system",
-          content: `You are an AI assistant that creates effective call scripts for sales representatives.
-          Your task is to use your knowledge to research information about the website domain provided and create a natural-sounding call script.
-          The script should be friendly, professional, and tailored to the specific business.`,
+          content: `You are an AI assistant that creates effective call scripts for a sales agent persona named Janie.
+          Your task is to use your knowledge to research information about the website domain provided and create a natural-sounding call script for Janie to use.
+          The script should be friendly, professional, and tailored to the specific business being called.
+          The goal of the call is to see if the business is interested in the services offered by the person Janie is calling on behalf of.
+          Use the variable {{name}} as a placeholder for the person Janie is calling for.
+          Use the variable {{businessName}} as a placeholder for the company being called.`,
         },
         {
           role: "user",
-          content: `I need to create a call script for a business with the website: ${websiteUrl} (domain: ${domain}).
-          
+          content: `I need to create a call script for our agent, Janie, to call a business with the website: ${websiteUrl} (domain: ${domain}).
+
           Please use your knowledge to:
-          1. Research and identify the business name, industry, and key services/products
-          2. Create a brief summary of what the business likely does
-          3. Generate a natural-sounding call script that a sales representative could use when calling this business
-          4. Include 2-3 questions that would be relevant to ask during the call
-          
+          1. Research and identify the business name, industry, and key services/products.
+          2. Create a brief summary of what the business likely does.
+          3. Generate a natural-sounding call script for Janie. The script must start with "Hello, my name is Janie, and I'm calling on behalf of {{name}}..." and should be directed at {{businessName}}.
+          4. Include 2-3 relevant questions for Janie to ask during the call to gauge interest.
+
           Format your response as JSON with the following structure:
           {
             "businessName": "Name of the business",
             "industry": "Industry category",
             "services": ["Service 1", "Service 2"],
             "summary": "Brief summary of the business",
-            "callScript": "Complete call script",
+            "callScript": "Complete call script for Janie, using {{name}} and {{businessName}}.",
             "questions": ["Question 1", "Question 2"]
           }`,
         },

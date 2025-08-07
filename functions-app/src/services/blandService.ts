@@ -65,6 +65,12 @@ export async function initiateCall(name: string, phoneNumber: string, websiteUrl
       businessName = "Unknown Business";
     }
 
+    // Replace placeholders in the call script
+    if (callScript) {
+      callScript = callScript.replace(/{{name}}/g, name);
+      callScript = callScript.replace(/{{businessName}}/g, businessName);
+    }
+
     // Log the call script for debugging
     console.log("Using call script:", callScript.substring(0, 100) + "...");
 
