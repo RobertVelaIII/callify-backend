@@ -125,8 +125,10 @@ export async function analyzeWebsite(websiteUrl: string): Promise<any> {
           Your task is to analyze the provided website content and create a natural-sounding call script for Janie to use.
           The script should be friendly, professional, and tailored to the specific business being called.
           The goal of the call is to see if the business is interested in the services offered by the person Janie is calling on behalf of.
-          Use the variable {{name}} as a placeholder for the person Janie is calling for.
-          Use the variable {{businessName}} as a placeholder for the company being called.
+          
+          ENTITY ROLES - EXTREMELY IMPORTANT:
+          - {{name}} is the INDIVIDUAL PERSON that Janie is calling on behalf of. This is Janie's client/employer.
+          - {{businessName}} is the COMPANY/BUSINESS that Janie is calling. This is the target of the call.
           
           CRITICAL INSTRUCTIONS:
           1. You MUST base your analysis EXCLUSIVELY on the provided website content.
@@ -135,7 +137,9 @@ export async function analyzeWebsite(websiteUrl: string): Promise<any> {
           4. If the website content is insufficient to determine certain information, state "Unknown" for that field rather than guessing.
           5. Pay special attention to the website's title, headings, and product categories to determine the actual business type.
           6. Look for copyright information, about pages, or contact information to determine the actual business name.
-          7. NEVER classify a business as landscaping, lawn care, or gardening unless the website content explicitly mentions these services.`,
+          7. NEVER classify a business as landscaping, lawn care, or gardening unless the website content explicitly mentions these services.
+          8. ALWAYS structure the call script with Janie introducing herself, stating she's calling on behalf of {{name}} (the PERSON), and then mentioning she's calling {{businessName}} (the BUSINESS).
+          9. NEVER introduce {{name}} as a business or {{businessName}} as a person.`,
         },
         {
           role: "user",
