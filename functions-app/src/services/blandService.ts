@@ -89,8 +89,8 @@ export async function initiateCall(name: string, phoneNumber: string, websiteUrl
     const data = {
       "phone_number": formattedPhone,
       "task": callScript,
-      "voice": "June",
-      "wait_for_greeting": false,
+      "voice": "Brady",
+      "wait_for_greeting": true,
       "record": true,
       "answered_by_enabled": true,
       "noise_cancellation": false,
