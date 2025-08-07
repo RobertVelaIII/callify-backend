@@ -1,0 +1,32 @@
+{
+  "functions": [
+    {
+      "source": "functions",
+      "predeploy": [
+        "npm --prefix functions run lint",
+        "npm --prefix functions run build"
+      ],
+      "codebase": "default"
+    },
+    {
+      "source": "functions-app",
+      "predeploy": [
+        "npm --prefix functions-app run build"
+      ],
+      "codebase": "functions",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "*.local"
+      ]
+    }
+  ],
+  "firestore": {
+    "database": "(default)",
+    "location": "nam7",
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  }
+}

@@ -1,0 +1,28 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Secure by default - only authenticated users can read/write
+    match /{document=**} {
+      allow read, write: if false;
+    }
+    
+    // Call logs can be created by anyone (for demo purposes)
+    // but can only be read by admins
+    match /callLogs/{logId} {
+      allow create: if true;
+      allow read, update, delete: if request.auth != null && request.auth.token.admin == true;
+    }
+    
+    // Rate limiting data
+    match /rateLimits/{userId} {
+      allow read: if true;
+      allow write: if false; // Only server can write
+    }
+    
+    // Contact form submissions
+    match /contactSubmissions/{submissionId} {
+      allow create: if true;
+      allow read, update, delete: if request.auth != null && request.auth.token.admin == true;
+    }
+  }
+}
