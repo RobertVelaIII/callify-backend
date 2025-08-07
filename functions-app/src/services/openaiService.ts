@@ -1,5 +1,12 @@
 import {OpenAI} from "openai";
 import * as admin from "firebase-admin";
+import fetch from "node-fetch";
+import * as cheerio from "cheerio";
+
+// Add type for fetch response
+type FetchError = {
+  message: string;
+};
 
 /**
  * Extracts domain name from a URL
@@ -16,6 +23,64 @@ function extractDomainName(url: string): string {
   } catch (error) {
     console.error("Error extracting domain name:", error);
     return url; // Return original URL if extraction fails
+  }
+}
+
+/**
+ * Fetches and extracts content from a website URL
+ * @param url The URL to fetch content from
+ * @return The extracted text content from the website
+ */
+async function fetchWebsiteContent(url: string): Promise<string> {
+  try {
+    console.log("Fetching content from URL:", url);
+    
+    // Ensure URL has protocol
+    const fullUrl = url.startsWith('http') ? url : `https://${url}`;
+    
+    // Fetch the website content
+    const response = await fetch(fullUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+      },
+      timeout: 10000 // 10 second timeout
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Failed to fetch website: ${response.status} ${response.statusText}`);
+    }
+    
+    const html = await response.text();
+    
+    // Use cheerio to parse HTML and extract text content
+    const $ = cheerio.load(html);
+    
+    // Remove script and style elements
+    $('script, style, noscript, iframe').remove();
+    
+    // Extract text from body, focusing on important elements
+    const title = $('title').text() || '';
+    const metaDescription = $('meta[name="description"]').attr('content') || '';
+    const h1Text = $('h1').map((i: number, el: any) => $(el).text()).get().join(' ');
+    const h2Text = $('h2').map((i: number, el: any) => $(el).text()).get().join(' ');
+    const bodyText = $('body').text();
+    
+    // Combine all text, clean it up and limit length
+    let combinedText = `TITLE: ${title}\n\nDESCRIPTION: ${metaDescription}\n\nHEADINGS: ${h1Text} ${h2Text}\n\nCONTENT: ${bodyText}`;
+    combinedText = combinedText.replace(/\s+/g, ' ').trim();
+    
+    // Limit content length to avoid token limits
+    const maxLength = 6000;
+    if (combinedText.length > maxLength) {
+      combinedText = combinedText.substring(0, maxLength) + '... [content truncated]';
+    }
+    
+    console.log("Successfully fetched and parsed website content");
+    return combinedText;
+  } catch (error) {
+    console.error("Error fetching website content:", error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    return `Failed to fetch website content: ${errorMessage}. Please analyze based on the domain name only.`;
   }
 }
 
@@ -43,28 +108,37 @@ export async function analyzeWebsite(websiteUrl: string): Promise<any> {
     // Extract domain name for better analysis
     const domain = extractDomainName(websiteUrl);
     console.log("Extracted domain:", domain);
+    
+    // Fetch actual website content
+    console.log("Fetching website content...");
+    const websiteContent = await fetchWebsiteContent(websiteUrl);
+    console.log("Website content fetched, length:", websiteContent.length);
 
-    // Generate analysis using OpenAI's knowledge
-    console.log("Sending request to OpenAI");
+    // Generate analysis using the actual website content
+    console.log("Sending request to OpenAI with actual website content");
     const completion = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
         {
           role: "system",
           content: `You are an AI assistant that creates effective call scripts for a sales agent persona named Janie.
-          Your task is to use your knowledge to research information about the website domain provided and create a natural-sounding call script for Janie to use.
+          Your task is to analyze the provided website content and create a natural-sounding call script for Janie to use.
           The script should be friendly, professional, and tailored to the specific business being called.
           The goal of the call is to see if the business is interested in the services offered by the person Janie is calling on behalf of.
           Use the variable {{name}} as a placeholder for the person Janie is calling for.
-          Use the variable {{businessName}} as a placeholder for the company being called.`,
+          Use the variable {{businessName}} as a placeholder for the company being called.
+          IMPORTANT: Base your analysis ONLY on the provided website content, not on general knowledge.`,
         },
         {
           role: "user",
           content: `I need to create a call script for our agent, Janie, to call a business with the website: ${websiteUrl} (domain: ${domain}).
 
-          Please use your knowledge to:
-          1. Research and identify the business name, industry, and key services/products.
-          2. Create a brief summary of what the business likely does.
+          Here is the actual content from the website:
+          ${websiteContent}
+
+          Based ONLY on this website content (not your general knowledge), please:
+          1. Identify the business name, industry, and key services/products.
+          2. Create a brief summary of what the business does.
           3. Generate a natural-sounding call script for Janie. The script must start with "Hello, my name is Janie, and I'm calling on behalf of {{name}}..." and should be directed at {{businessName}}.
           4. Include 2-3 relevant questions for Janie to ask during the call to gauge interest.
 
