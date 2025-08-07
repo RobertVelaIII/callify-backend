@@ -1,7 +1,7 @@
 import {OpenAI} from "openai";
 import * as admin from "firebase-admin";
 import fetch from "node-fetch";
-import * as cheerio from "cheerio";
+import cheerio from "cheerio";
 
 // Add type for fetch response
 type FetchError = {
@@ -127,16 +127,24 @@ export async function analyzeWebsite(websiteUrl: string): Promise<any> {
           The goal of the call is to see if the business is interested in the services offered by the person Janie is calling on behalf of.
           Use the variable {{name}} as a placeholder for the person Janie is calling for.
           Use the variable {{businessName}} as a placeholder for the company being called.
-          IMPORTANT: Base your analysis ONLY on the provided website content, not on general knowledge.`,
+          
+          CRITICAL INSTRUCTIONS:
+          1. You MUST base your analysis EXCLUSIVELY on the provided website content.
+          2. DO NOT use any prior knowledge about the domain name or business.
+          3. DO NOT make assumptions about the business based on the domain name.
+          4. If the website content is insufficient to determine certain information, state "Unknown" for that field rather than guessing.
+          5. Pay special attention to the website's title, headings, and product categories to determine the actual business type.
+          6. Look for copyright information, about pages, or contact information to determine the actual business name.
+          7. NEVER classify a business as landscaping, lawn care, or gardening unless the website content explicitly mentions these services.`,
         },
         {
           role: "user",
-          content: `I need to create a call script for our agent, Janie, to call a business with the website: ${websiteUrl} (domain: ${domain}).
+          content: `I need to create a call script for our agent, Janie, to call a business with the website: ${websiteUrl}
 
           Here is the actual content from the website:
           ${websiteContent}
 
-          Based ONLY on this website content (not your general knowledge), please:
+          Based EXCLUSIVELY on this website content (NOT your general knowledge or the domain name), please:
           1. Identify the business name, industry, and key services/products.
           2. Create a brief summary of what the business does.
           3. Generate a natural-sounding call script for Janie. The script must start with "Hello, my name is Janie, and I'm calling on behalf of {{name}}..." and should be directed at {{businessName}}.
@@ -144,13 +152,15 @@ export async function analyzeWebsite(websiteUrl: string): Promise<any> {
 
           Format your response as JSON with the following structure:
           {
-            "businessName": "Name of the business",
-            "industry": "Industry category",
-            "services": ["Service 1", "Service 2"],
-            "summary": "Brief summary of the business",
+            "businessName": "Name of the business as it appears on the website",
+            "industry": "Industry category based ONLY on website content",
+            "services": ["Service/Product 1", "Service/Product 2"],
+            "summary": "Brief summary of the business based ONLY on website content",
             "callScript": "Complete call script for Janie, using {{name}} and {{businessName}}.",
             "questions": ["Question 1", "Question 2"]
-          }`,
+          }
+          
+          If you cannot determine any field with certainty from the website content, use "Unknown" for that field.`,
         },
       ],
       response_format: {type: "json_object"},
