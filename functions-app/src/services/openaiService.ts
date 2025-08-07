@@ -121,14 +121,14 @@ export async function analyzeWebsite(websiteUrl: string): Promise<any> {
       messages: [
         {
           role: "system",
-          content: `You are an AI assistant that creates effective call scripts for a sales agent persona named Janie.
-          Your task is to analyze the provided website content and create a natural-sounding call script for Janie to use.
+          content: `You are an AI assistant that creates effective call scripts for a sales agent persona named Jordon.
+          Your task is to analyze the provided website content and create a natural-sounding call script for Jordon to use.
           The script should be friendly, professional, and tailored to the specific business being called.
-          The goal of the call is to see if the business is interested in the services offered by the person Janie is calling on behalf of.
+          The goal of the call is to see if the business is interested in the services offered by the person Jordon is calling on behalf of.
           
           ENTITY ROLES - EXTREMELY IMPORTANT:
-          - {{name}} is the INDIVIDUAL PERSON that Janie is calling on behalf of. This is Janie's client/employer.
-          - {{businessName}} is the COMPANY/BUSINESS that Janie is calling. This is the target of the call.
+          - {{name}} is the INDIVIDUAL PERSON that Jordon is calling on behalf of. This is Jordon's client/employer.
+          - {{businessName}} is the COMPANY/BUSINESS that Jordon is calling. This is the target of the call.
           
           CRITICAL INSTRUCTIONS:
           1. You MUST base your analysis EXCLUSIVELY on the provided website content.
@@ -138,12 +138,12 @@ export async function analyzeWebsite(websiteUrl: string): Promise<any> {
           5. Pay special attention to the website's title, headings, and product categories to determine the actual business type.
           6. Look for copyright information, about pages, or contact information to determine the actual business name.
           7. NEVER classify a business as landscaping, lawn care, or gardening unless the website content explicitly mentions these services.
-          8. ALWAYS structure the call script with Janie introducing herself, stating she's calling on behalf of {{name}} (the PERSON), and then mentioning she's calling {{businessName}} (the BUSINESS).
+          8. ALWAYS structure the call script with Jordon introducing herself, stating she's calling on behalf of {{name}} (the PERSON), and then mentioning she's calling {{businessName}} (the BUSINESS).
           9. NEVER introduce {{name}} as a business or {{businessName}} as a person.`,
         },
         {
           role: "user",
-          content: `I need to create a call script for our agent, Janie, to call a business with the website: ${websiteUrl}
+          content: `I need to create a call script for our agent, Jordon, to call a business with the website: ${websiteUrl}
 
           Here is the actual content from the website:
           ${websiteContent}
@@ -151,8 +151,8 @@ export async function analyzeWebsite(websiteUrl: string): Promise<any> {
           Based EXCLUSIVELY on this website content (NOT your general knowledge or the domain name), please:
           1. Identify the business name, industry, and key services/products.
           2. Create a brief summary of what the business does.
-          3. Generate a natural-sounding call script for Janie. The script must start with "Hello, my name is Janie, and I'm calling on behalf of {{name}}..." and should be directed at {{businessName}}.
-          4. Include 2-3 relevant questions for Janie to ask during the call to gauge interest.
+          3. Generate a natural-sounding call script for Jordon. The script must start with "Hello, my name is Jordon, and I'm calling on behalf of {{name}}..." and should be directed at {{businessName}}.
+          4. Include 2-3 relevant questions for Jordon to ask during the call to gauge interest.
 
           Format your response as JSON with the following structure:
           {
@@ -160,7 +160,7 @@ export async function analyzeWebsite(websiteUrl: string): Promise<any> {
             "industry": "Industry category based ONLY on website content",
             "services": ["Service/Product 1", "Service/Product 2"],
             "summary": "Brief summary of the business based ONLY on website content",
-            "callScript": "Complete call script for Janie, using {{name}} and {{businessName}}.",
+            "callScript": "Complete call script for Jordon, using {{name}} and {{businessName}}.",
             "questions": ["Question 1", "Question 2"]
           }
           
