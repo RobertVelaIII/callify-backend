@@ -1,32 +1,20 @@
-import axios from 'axios';
 import { OpenAI } from 'openai';
 
-
 /**
- * Scrapes content from a website URL
- * @param url The website URL to scrape
- * @returns The scraped content
+ * Extracts domain name from a URL
+ * @param url The full website URL
+ * @returns The domain name
  */
-async function scrapeWebsite(url: string): Promise<string> {
+function extractDomainName(url: string): string {
   try {
-    // Simple website scraping using axios
-    const response = await axios.get(url);
-    
-    // Extract text content from HTML
-    // This is a simplified version - in production, use a proper HTML parser
-    let content = response.data;
-    
-    // Remove HTML tags (simplified approach)
-    content = content.replace(/<[^>]*>/g, ' ');
-    
-    // Remove extra whitespace
-    content = content.replace(/\s+/g, ' ').trim();
-    
-    // Limit content length to avoid token limits
-    return content.substring(0, 5000);
+    // Remove protocol and get domain
+    let domain = url.replace(/^(?:https?:\/\/)?(?:www\.)?/i, "");
+    // Remove path, query string, etc.
+    domain = domain.split('/')[0];
+    return domain;
   } catch (error) {
-    console.error('Website scraping error:', error);
-    throw new Error('Failed to scrape website content');
+    console.error('Error extracting domain name:', error);
+    return url; // Return original URL if extraction fails
   }
 }
 
@@ -36,37 +24,43 @@ async function scrapeWebsite(url: string): Promise<string> {
  * @returns Analysis and call prompt
  */
 export async function analyzeWebsite(websiteUrl: string): Promise<any> {
-  // Initialize OpenAI client using Firebase Functions config
-  const apiKey = process.env.OPENAI_APIKEY;
-  if (!apiKey) {
-    throw new Error('OpenAI API key is not configured. Set it with `firebase functions:config:set openai.api_key="YOUR_KEY"`');
-  }
-
-  const openai = new OpenAI({
-    apiKey: apiKey,
-  });
-
   try {
-    // Scrape website content
-    const websiteContent = await scrapeWebsite(websiteUrl);
+    console.log('Starting website analysis for:', websiteUrl);
     
-    // Generate analysis using OpenAI
+    // Initialize OpenAI client using environment variables
+    const apiKey = process.env.OPENAI_APIKEY;
+    if (!apiKey) {
+      console.error('OpenAI API key is missing from environment variables');
+      throw new Error('OpenAI API key is not configured');
+    }
+    
+    console.log('OpenAI API key found, initializing client');
+    const openai = new OpenAI({
+      apiKey: apiKey,
+    });
+
+    // Extract domain name for better analysis
+    const domain = extractDomainName(websiteUrl);
+    console.log('Extracted domain:', domain);
+    
+    // Generate analysis using OpenAI's knowledge
+    console.log('Sending request to OpenAI');
     const completion = await openai.chat.completions.create({
-      model: "gpt-4",
+      model: "gpt-4o",
       messages: [
         {
           role: "system",
-          content: `You are an AI assistant that analyzes business websites and creates effective call scripts for sales representatives. 
-          Your task is to analyze the website content provided and create a natural-sounding call script that a sales representative could use.
+          content: `You are an AI assistant that creates effective call scripts for sales representatives.
+          Your task is to use your knowledge to research information about the website domain provided and create a natural-sounding call script.
           The script should be friendly, professional, and tailored to the specific business.`
         },
         {
           role: "user",
-          content: `Here is the content from a business website: ${websiteContent}
+          content: `I need to create a call script for a business with the website: ${websiteUrl} (domain: ${domain}).
           
-          Based on this content, please:
-          1. Identify the business name, industry, and key services/products
-          2. Create a brief summary of what the business does
+          Please use your knowledge to:
+          1. Research and identify the business name, industry, and key services/products
+          2. Create a brief summary of what the business likely does
           3. Generate a natural-sounding call script that a sales representative could use when calling this business
           4. Include 2-3 questions that would be relevant to ask during the call
           
@@ -85,12 +79,14 @@ export async function analyzeWebsite(websiteUrl: string): Promise<any> {
     });
     
     // Parse the response
+    console.log('Received response from OpenAI');
     const analysisText = completion.choices[0].message.content || '{}';
     const analysis = JSON.parse(analysisText);
     
+    console.log('Analysis complete:', JSON.stringify(analysis).substring(0, 100) + '...');
     return analysis;
   } catch (error) {
     console.error('OpenAI analysis error:', error);
-    throw new Error('Failed to analyze website with OpenAI');
+    throw new Error('Failed to analyze website with OpenAI: ' + (error instanceof Error ? error.message : String(error)));
   }
 }
