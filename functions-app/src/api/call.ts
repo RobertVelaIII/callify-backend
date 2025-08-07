@@ -1,21 +1,33 @@
-import * as express from 'express';
-import { initiateCall } from '../services/blandService';
+import * as express from "express";
+import {initiateCall} from "../services/blandService";
 
 const router = express.Router();
 
-router.post('/', async (req: express.Request, res: express.Response) => {
-  const { name, phoneNumber, websiteUrl } = req.body;
+router.post("/", async (req: express.Request, res: express.Response) => {
+  // Extract parameters from request body, handling both naming conventions
+  const {
+    first_name, name: nameAlt,
+    phone_number, phoneNumber: phoneNumberAlt,
+    website, websiteUrl: websiteUrlAlt,
+  } = req.body;
+
+  // Use the provided parameters or their alternatives
+  const name = first_name || nameAlt;
+  const phoneNumber = phone_number || phoneNumberAlt;
+  const websiteUrl = website || websiteUrlAlt;
+
+  console.log("Call request received:", {name, phoneNumber, websiteUrl});
 
   if (!name || !phoneNumber || !websiteUrl) {
-    return res.status(400).send({ error: 'Name, phone number, and website URL are required' });
+    return res.status(400).send({error: "Name, phone number, and website URL are required"});
   }
 
   try {
     const callResult = await initiateCall(name, phoneNumber, websiteUrl);
     return res.status(200).send(callResult);
   } catch (error) {
-    console.error('Error initiating call:', error);
-    return res.status(500).send({ error: 'Failed to initiate call' });
+    console.error("Error initiating call:", error);
+    return res.status(500).send({error: "Failed to initiate call"});
   }
 });
 

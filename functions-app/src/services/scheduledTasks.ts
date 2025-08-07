@@ -6,25 +6,25 @@
  * This helps keep the database clean and efficient
  * Temporarily commented out to unblock deployment
  */
-/* 
+/*
 export const cleanupRateLimits = functions.https.onRequest(async (req, res) => {
     try {
       // Get date for records older than 7 days
       const cutoffDate = new Date();
       cutoffDate.setDate(cutoffDate.getDate() - 7);
       const cutoffDateStr = cutoffDate.toISOString().split('T')[0]; // YYYY-MM-DD
-      
+
       // Query for old records
       const oldRecordsQuery = await db.collection('rateLimits')
         .where('date', '<', cutoffDateStr)
         .get();
-      
+
       // Delete old records
       const batch = db.batch();
       oldRecordsQuery.docs.forEach((doc) => {
         batch.delete(doc.ref);
       });
-      
+
       // Commit the batch
       if (oldRecordsQuery.docs.length > 0) {
         await batch.commit();
@@ -32,7 +32,7 @@ export const cleanupRateLimits = functions.https.onRequest(async (req, res) => {
       } else {
         console.log('No old rate limit records to delete');
       }
-      
+
       return null;
     } catch (error) {
       console.error('Error cleaning up rate limits:', error);
@@ -51,18 +51,18 @@ export const cleanupWebsiteAnalyses = functions.https.onRequest(async (req, res)
       // Get timestamp for records older than 30 days
       const cutoffDate = new Date();
       cutoffDate.setDate(cutoffDate.getDate() - 30);
-      
+
       // Query for old records
       const oldRecordsQuery = await db.collection('websiteAnalyses')
         .where('timestamp', '<', admin.firestore.Timestamp.fromDate(cutoffDate))
         .get();
-      
+
       // Delete old records
       const batch = db.batch();
       oldRecordsQuery.docs.forEach((doc) => {
         batch.delete(doc.ref);
       });
-      
+
       // Commit the batch
       if (oldRecordsQuery.docs.length > 0) {
         await batch.commit();
@@ -70,7 +70,7 @@ export const cleanupWebsiteAnalyses = functions.https.onRequest(async (req, res)
       } else {
         console.log('No old website analyses to delete');
       }
-      
+
       return null;
     } catch (error) {
       console.error('Error cleaning up website analyses:', error);

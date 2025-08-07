@@ -1,5 +1,5 @@
 
-import * as nodemailer from 'nodemailer';
+import * as nodemailer from "nodemailer";
 
 /**
  * Sends a contact form email.
@@ -16,14 +16,14 @@ export const sendContactEmail = async (name: string, email: string, message: str
   const pass = process.env.NODEMAILER_PASS;
 
   if (!host || !port || !secure || !user || !pass) {
-    console.error('Nodemailer environment variables are not fully set.');
-    throw new Error('Server configuration error for sending email.');
+    console.error("Nodemailer environment variables are not fully set.");
+    throw new Error("Server configuration error for sending email.");
   }
 
   const mailTransport = nodemailer.createTransport({
     host: host,
     port: parseInt(port, 10),
-    secure: secure === 'true',
+    secure: secure === "true",
     auth: {
       user: user,
       pass: pass,
@@ -39,9 +39,9 @@ export const sendContactEmail = async (name: string, email: string, message: str
 
   try {
     await mailTransport.sendMail(mailOptions);
-    console.log('Contact email sent successfully.');
+    console.log("Contact email sent successfully.");
   } catch (error) {
-    console.error('There was an error while sending the contact email:', error);
-    throw new Error('Failed to send contact email.');
+    console.error("There was an error while sending the contact email:", error);
+    throw new Error("Failed to send contact email.");
   }
 };

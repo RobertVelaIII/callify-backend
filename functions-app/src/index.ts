@@ -1,29 +1,30 @@
-// Forcing redeployment with App Password at 2025-08-07T02:32:58-05:00
-import {onRequest} from 'firebase-functions/v2/https';
-import express from 'express';
-import cors from 'cors';
-import * as admin from 'firebase-admin';
+import * as admin from "firebase-admin";
+import { onRequest } from "firebase-functions/v2/https";
+import express from "express";
+import cors from "cors";
 
-import websiteAnalysisRouter from './api/websiteAnalysis';
-import callRouter from './api/call';
-import contactRouter from './api/contact';
-import { rateLimit } from './utils/rateLimit';
-
+// Initialize Firebase Admin SDK *once*
 admin.initializeApp();
 
-const app = express();
+// Import API route handlers and middleware
+import websiteAnalysisRouter from "./api/websiteAnalysis";
+import callRouter from "./api/call";
+import contactRouter from "./api/contact";
+import { rateLimit } from "./utils/rateLimit";
 
+// Create and configure the Express app
+const app = express();
 app.use(cors({ origin: true }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Apply rate limiting to the call endpoint
-app.use('/call', rateLimit);
+// Apply rate limiting middleware specifically to the /call endpoint
+app.use("/call", rateLimit);
 
-// API routes
-app.use('/website-analysis', websiteAnalysisRouter);
-app.use('/call', callRouter);
-app.use('/contact', contactRouter);
+// Define API routes
+app.use("/website-analysis", websiteAnalysisRouter);
+app.use("/call", callRouter);
+app.use("/contact", contactRouter);
 
-// Expose the Express app as a Cloud Function
-export const api = onRequest({ invoker: 'public' }, app);
+// Expose the Express app as a single Cloud Function
+export const api = onRequest({ invoker: "public" }, app);

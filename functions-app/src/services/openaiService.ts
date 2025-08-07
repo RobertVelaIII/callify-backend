@@ -1,19 +1,20 @@
-import { OpenAI } from 'openai';
+import {OpenAI} from "openai";
+import * as admin from "firebase-admin";
 
 /**
  * Extracts domain name from a URL
  * @param url The full website URL
- * @returns The domain name
+ * @return The domain name
  */
 function extractDomainName(url: string): string {
   try {
     // Remove protocol and get domain
     let domain = url.replace(/^(?:https?:\/\/)?(?:www\.)?/i, "");
     // Remove path, query string, etc.
-    domain = domain.split('/')[0];
+    domain = domain.split("/")[0];
     return domain;
   } catch (error) {
-    console.error('Error extracting domain name:', error);
+    console.error("Error extracting domain name:", error);
     return url; // Return original URL if extraction fails
   }
 }
@@ -21,30 +22,30 @@ function extractDomainName(url: string): string {
 /**
  * Analyzes a website and generates a call prompt using OpenAI
  * @param websiteUrl The URL of the website to analyze
- * @returns Analysis and call prompt
+ * @return Analysis and call prompt
  */
 export async function analyzeWebsite(websiteUrl: string): Promise<any> {
   try {
-    console.log('Starting website analysis for:', websiteUrl);
-    
+    console.log("Starting website analysis for:", websiteUrl);
+
     // Initialize OpenAI client using environment variables
     const apiKey = process.env.OPENAI_APIKEY;
     if (!apiKey) {
-      console.error('OpenAI API key is missing from environment variables');
-      throw new Error('OpenAI API key is not configured');
+      console.error("OpenAI API key is missing from environment variables");
+      throw new Error("OpenAI API key is not configured");
     }
-    
-    console.log('OpenAI API key found, initializing client');
+
+    console.log("OpenAI API key found, initializing client");
     const openai = new OpenAI({
       apiKey: apiKey,
     });
 
     // Extract domain name for better analysis
     const domain = extractDomainName(websiteUrl);
-    console.log('Extracted domain:', domain);
-    
+    console.log("Extracted domain:", domain);
+
     // Generate analysis using OpenAI's knowledge
-    console.log('Sending request to OpenAI');
+    console.log("Sending request to OpenAI");
     const completion = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
@@ -52,7 +53,7 @@ export async function analyzeWebsite(websiteUrl: string): Promise<any> {
           role: "system",
           content: `You are an AI assistant that creates effective call scripts for sales representatives.
           Your task is to use your knowledge to research information about the website domain provided and create a natural-sounding call script.
-          The script should be friendly, professional, and tailored to the specific business.`
+          The script should be friendly, professional, and tailored to the specific business.`,
         },
         {
           role: "user",
@@ -72,21 +73,36 @@ export async function analyzeWebsite(websiteUrl: string): Promise<any> {
             "summary": "Brief summary of the business",
             "callScript": "Complete call script",
             "questions": ["Question 1", "Question 2"]
-          }`
-        }
+          }`,
+        },
       ],
-      response_format: { type: "json_object" }
+      response_format: {type: "json_object"},
     });
-    
+
     // Parse the response
-    console.log('Received response from OpenAI');
-    const analysisText = completion.choices[0].message.content || '{}';
+    console.log("Received response from OpenAI");
+    const analysisText = completion.choices[0].message.content || "{}";
     const analysis = JSON.parse(analysisText);
-    
-    console.log('Analysis complete:', JSON.stringify(analysis).substring(0, 100) + '...');
+
+    // Store the analysis in Firestore for later use by Bland.ai
+    try {
+      const db = admin.firestore();
+      await db.collection("websiteAnalyses").add({
+        websiteUrl,
+        domain,
+        analysis,
+        timestamp: admin.firestore.FieldValue.serverTimestamp(),
+      });
+      console.log("Analysis stored in Firestore");
+    } catch (dbError) {
+      console.error("Error storing analysis in Firestore:", dbError);
+      // Continue even if storage fails - we'll return the analysis anyway
+    }
+
+    console.log("Analysis complete:", JSON.stringify(analysis).substring(0, 100) + "...");
     return analysis;
   } catch (error) {
-    console.error('OpenAI analysis error:', error);
-    throw new Error('Failed to analyze website with OpenAI: ' + (error instanceof Error ? error.message : String(error)));
+    console.error("OpenAI analysis error:", error);
+    throw new Error("Failed to analyze website with OpenAI: " + (error instanceof Error ? error.message : String(error)));
   }
 }
