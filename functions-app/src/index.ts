@@ -22,9 +22,9 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/call", rateLimit);
 
 // Define API routes
-app.use("/api/website-analysis", websiteAnalysisRouter);
-app.use("/api/call", callRouter);
-app.use("/api/contact", contactRouter);
+app.use("/website-analysis", websiteAnalysisRouter);
+app.use("/call", callRouter);
+app.use("/contact", contactRouter);
 
 // Expose the Express app as a single Cloud Function
 export const api = onRequest({ invoker: "public" }, app);

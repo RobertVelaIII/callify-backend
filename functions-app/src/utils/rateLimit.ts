@@ -1,7 +1,7 @@
 import {Request, Response, NextFunction} from "express";
 import * as admin from "firebase-admin";
 
-const MAX_CALLS_PER_DAY = 3;
+const MAX_CALLS_PER_DAY = 100;
 
 /**
  * Middleware to enforce a rate limit on API calls based on IP address.
