@@ -10,6 +10,8 @@ admin.initializeApp();
 import websiteAnalysisRouter from "./api/websiteAnalysis";
 import callRouter from "./api/call";
 import contactRouter from "./api/contact";
+import usersRouter from "./api/users";
+import authRouter from "./api/auth";
 import { rateLimit } from "./utils/rateLimit";
 
 // Create and configure the Express app
@@ -25,6 +27,8 @@ app.use("/call", rateLimit);
 app.use("/website-analysis", websiteAnalysisRouter);
 app.use("/call", callRouter);
 app.use("/contact", contactRouter);
+app.use("/users", usersRouter);
+app.use("/auth", authRouter);
 
 // Expose the Express app as a single Cloud Function
 export const api = onRequest({ invoker: "public" }, app);
