@@ -42,8 +42,8 @@ export async function initiateCall(name: string, phoneNumber: string, websiteUrl
         const summary = analysis.summary || "";
         const questions = analysis.questions || [];
 
-        // Construct a call script using available data
-        callScript = `Hello, my name is AI Assistant from Callify. I'm calling about ${businessName}. `;
+        // Construct a call script using the required format
+        callScript = `Hey ${name}, this is Jordan from Gold Strike Media and I see your ${businessName}. `;
 
         if (summary) {
           callScript += `I understand that ${summary} `;
@@ -61,7 +61,7 @@ export async function initiateCall(name: string, phoneNumber: string, websiteUrl
     } else {
       // Fallback if no analysis is found
       console.log("No analysis found, using fallback script");
-      callScript = `Hello, this is a test call from Callify. We're testing our AI-powered phone automation platform. Is this ${name}?`;
+      callScript = `Hey ${name}, this is Jordan from Gold Strike Media and I see your business. We help businesses optimize their operations and increase revenue. Would it make sense to set up a short call to discuss how we might be able to help?`;
       businessName = "Unknown Business";
     }
 
@@ -85,24 +85,24 @@ export async function initiateCall(name: string, phoneNumber: string, websiteUrl
       'Content-Type': 'application/json'
     };
 
-    // Data exactly as shown in the GUI, with our values
+    // Data
     const data = {
       "phone_number": formattedPhone,
-      "task": callScript,
       "voice": "Brady",
       "wait_for_greeting": true,
       "record": true,
       "answered_by_enabled": true,
       "noise_cancellation": false,
-      "interruption_threshold": 100,
+      "interruption_threshold": 200,
       "block_interruptions": false,
       "max_duration": 12,
       "model": "base",
       "language": "en",
-      "background_track": "none",
+      "background_track": "office",
       "endpoint": "https://api.bland.ai",
       "voicemail_action": "hangup",
-      "json_mode_enabled": false
+      "task": callScript,
+      "temperature": 0.7
     };
 
     // API request exactly as shown in the GUI
